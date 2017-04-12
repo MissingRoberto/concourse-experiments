@@ -1,0 +1,34 @@
+---
+# Documentation for the concourse resource: https://github.com/mrsixw/concourse-rsync-resource
+
+resource_types:
+- name: rsync-resource
+  type: docker-image
+  source:
+    repository: mrsixw/concourse-rsync-resource
+    tag: latest
+
+resources:
+- name: input1
+  type: git
+  source:
+    uri: https://github.com/jszroberto/concourse-experiments.git
+
+- name: sync-resource
+  type: rsync-resource
+  source:
+    server: 0.0.0.0
+    port: 22
+    base_dir: /sync_directory
+    user: root
+    private_key: {{private_key}}
+    disable_version_path: true
+
+jobs:
+- name: copy-files
+  plan:
+  - get: input1
+  - put: sync-resource
+    params:
+     sync_dir: input1
+     rsync_opts: ["-e", "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"]
